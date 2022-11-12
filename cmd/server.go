@@ -7,8 +7,6 @@ import (
 	"github.com/bahalla/lets-chat-golang/pkg/models"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/locales/ms"
-	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 func main() {
