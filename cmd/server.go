@@ -11,7 +11,7 @@ import (
 func main() {
 	route := gin.Default()
 
-	p := kproducer.NewProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:9094"})
+	p := kproducer.NewProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831"})
 
 	go kproducer.HandlePublishEvents(*p)
 
