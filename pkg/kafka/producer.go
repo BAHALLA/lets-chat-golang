@@ -2,8 +2,8 @@ package kafka
 
 import (
 	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/bahalla/lets-chat-golang/pkg/models"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func NewProducer(config kafka.ConfigMap) *kafka.Producer {
@@ -35,7 +35,7 @@ func Publish(p kafka.Producer, topic string, message models.Message) error {
 
 	err := p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Key: []byte(message.User),
+		Key:            []byte(message.User),
 		Value:          []byte(message.Content),
 	}, nil)
 

@@ -3,15 +3,14 @@ package kafka
 import (
 	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
+	"github.com/bahalla/lets-chat-golang/pkg/models"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func NewConsumer(config kafka.ConfigMap) *kafka.Consumer {
-	
+
 	c, err := kafka.NewConsumer(&config)
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s", err)
@@ -20,32 +19,13 @@ func NewConsumer(config kafka.ConfigMap) *kafka.Consumer {
 	return c
 }
 
-func Subscribe(c kafka.Consumer, topic string) error{
+func Subscribe(c kafka.Consumer, topic string) (models.Message, error) {
 
 	err := c.SubscribeTopics([]string{topic}, nil)
-	
-	// Set up a channel for handling Ctrl-C, etc
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	// Process messages
-	run := true
-	for run == true {
-		select {
-		case sig := <-sigchan:
-			fmt.Printf("Caught signal %v: terminating\n", sig)
-			run = false
-		default:
-			ev, err := c.ReadMessage(100 * time.Millisecond)
-			if err != nil {
-				// Errors are informational and automatically handled by the consumer
-				continue
-			}
-			fmt.Printf("Consumed event from topic %s: key = %-10s value = %s\n",
-				*ev.TopicPartition.Topic, string(ev.Key), string(ev.Value))
-		}
-	}
+	ev, err := c.ReadMessage(100 * time.Millisecond)
 
-	return err
+	msg := models.Message{ID: "1", User: string(ev.Key), Content: string(ev.Value)}
+
+	return msg, err
 }
-

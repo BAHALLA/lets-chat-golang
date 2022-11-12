@@ -7,6 +7,8 @@ import (
 	"github.com/bahalla/lets-chat-golang/pkg/models"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/locales/ms"
+	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 func main() {
@@ -32,7 +34,15 @@ func main() {
 	})
 
 	route.GET("/recieve", func(c *gin.Context) {
-		kt.Subscribe(*cr, "my-topic")
+		msg, err := kt.Subscribe(*cr, "my-topic")
+
+		if err == nil {
+			c.JSON(http.StatusOK, msg)
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Not OK",
+			})
+		}
 	})
 
 	route.Run(":9090")
