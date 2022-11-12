@@ -1,4 +1,4 @@
-module lets-chat-golang.com
+module github.com/bahalla/lets-chat-golang
 
 go 1.17
 
