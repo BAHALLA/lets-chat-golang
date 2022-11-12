@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	kt "github.com/bahalla/lets-chat-golang/pkg/kafka"
@@ -16,7 +15,7 @@ func main() {
 
 	p := startProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831"})
 	cr := startConsumer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831", "group.id": "chat-app-1"}, "my-topic")
-		
+
 	route.GET("/send", func(c *gin.Context) {
 
 		err := kt.Publish(*p, "my-topic", models.Message{ID: "1", User: "Taoufiq", Content: "Hello !"})
@@ -33,7 +32,7 @@ func main() {
 	})
 
 	route.GET("/recieve", func(c *gin.Context) {
-		kt.Subscribe(*cr , "my-topic")
+		kt.Subscribe(*cr, "my-topic")
 	})
 
 	route.Run(":9090")
