@@ -15,21 +15,25 @@ func main() {
 	route := gin.Default()
 
 	p := startProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831"})
-	startConsumer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831", "group.id": "chat-app-1"}, "my-topic")
 
-	route.GET("/api", func(c *gin.Context) {
+	route.GET("/send", func(c *gin.Context) {
 
 		err := kt.Publish(*p, "my-topic", models.Message{ID: "1", User: "Taoufiq", Content: "Hello !"})
 
 		if err == nil {
 			c.JSON(http.StatusOK, gin.H{
-				"message": "Message sent",
+				"message": "OK ",
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
-				"message": "Message sent",
+				"message": "Not OK",
 			})
 		}
+	})
+
+	route.GET("/recieve", func(c *gin.Context) {
+		startConsumer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831", "group.id": "chat-app-1"}, "my-topic")
+
 	})
 
 	route.Run(":9090")
