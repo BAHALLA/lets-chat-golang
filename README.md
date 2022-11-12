@@ -1,1 +1,2 @@
-# Simple chat application using Golang and Apache Kafka
+# Chat application
+Simple application using [Golang](https://go.dev/) and [Apache kafka](https://kafka.apache.org/).
