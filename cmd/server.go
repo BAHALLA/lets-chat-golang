@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	kproducer "github.com/bahalla/lets-chat-golang/pkg/kafka/producer"
+	kproducer "github.com/bahalla/lets-chat-golang/pkg/kafka"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
 )
