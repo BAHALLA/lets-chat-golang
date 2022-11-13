@@ -1,20 +1,23 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	kt "github.com/bahalla/lets-chat-golang/pkg/kafka"
 	"github.com/bahalla/lets-chat-golang/pkg/models"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
+
+var upgrader = websocket.Upgrader{}
 
 func main() {
 
 	route := gin.Default()
 
 	p := startProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831"})
-	cr := startConsumer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831", "group.id": "chat-app-1"}, "my-topic")
 
 	route.GET("/send", func(c *gin.Context) {
 
@@ -31,21 +34,38 @@ func main() {
 		}
 	})
 
-	route.GET("/recieve", func(c *gin.Context) {
-		msg, err := kt.Subscribe(*cr, "my-topic")
+	route.GET("/ws", func(ctx *gin.Context) {
 
-		if err == nil {
-			c.JSON(http.StatusOK, msg)
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Not OK",
-			})
+		upgrader.CheckOrigin  = func(r *http.Request) bool { return true}
+		ws, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+		if err != nil {
+			log.Println(err)
+		}
+		defer ws.Close()
+		log.Println("Connected !")
+
+		for {
+			var message models.Message
+			err := ws.ReadJSON(&message)
+
+			if err != nil {
+				log.Printf("Reading error occured %v\n", err)
+				break
+			}
+
+			log.Printf(message.Content)
+
+			if err:= ws.WriteJSON(message); err != nil {
+				log.Printf("Writing error occured %v\n", err)
+			}
 		}
 	})
+
 
 	route.Run(":9090")
 }
 
+// start kafka producer
 func startProducer(conf kafka.ConfigMap) *kafka.Producer {
 
 	p := kt.NewProducer(conf)
@@ -53,7 +73,4 @@ func startProducer(conf kafka.ConfigMap) *kafka.Producer {
 	return p
 }
 
-func startConsumer(conf kafka.ConfigMap, topic string) *kafka.Consumer {
-	c := kt.NewConsumer(conf)
-	return c
-}
+
