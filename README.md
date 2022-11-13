@@ -9,6 +9,6 @@ Simple chat application using:
 
 ---
 
-Refer to UI repository: [Frontend](https://github.com/BAHALLA/lets-chat-react).
+Refer to UI repository: [lets-chat-react](https://github.com/BAHALLA/lets-chat-react).
 
 ---

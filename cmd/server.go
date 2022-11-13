@@ -47,6 +47,7 @@ func main() {
 		for {
 			var message models.Message
 			err := ws.ReadJSON(&message)
+			log.Printf(message.Content)
 
 			if err != nil {
 				log.Printf("Reading error occured %v\n", err)
