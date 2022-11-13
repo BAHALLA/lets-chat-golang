@@ -11,7 +11,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 type Message struct {
 	Message string `json:"message"`
@@ -38,6 +41,9 @@ func main() {
 		}
 	})
 
+	hub := NewHub()
+	go hub.run()
+
 	route.GET("/ws", func(ctx *gin.Context) {
 
 		upgrader.CheckOrigin  = func(r *http.Request) bool { return true}
@@ -45,23 +51,18 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-		defer ws.Close()
-		log.Println("Connected !")
-
-		for {
-			var message Message
-			err := ws.ReadJSON(&message)
-
-			if err != nil {
-				log.Printf("Reading error occured %v\n", err)
-				break
-			}
-			log.Println(message)
-
-			if err:= ws.WriteJSON(message); err != nil {
-				log.Printf("Writing error occured %v\n", err)
-			}
-		}
+	    defer func() {
+			delete(hub.clients, ws)
+			ws.Close()
+			log.Printf("Closed!")
+		}()
+		// Add client
+		hub.clients[ws] = true
+		
+		log.Println("Connected!")
+		
+		// Listen on connection
+		read(hub, ws)
 	})
 
 
@@ -77,3 +78,18 @@ func startProducer(conf kafka.ConfigMap) *kafka.Producer {
 }
 
 
+func read(hub *Hub, client *websocket.Conn) {
+	for {
+		var message Message
+		err := client.ReadJSON(&message)
+		if err != nil {
+			log.Printf("error occurred: %v", err)
+			delete(hub.clients, client)
+			break
+		}
+		log.Println(message)
+
+                // Send a message to hub
+		hub.broadcast <- message
+	}
+}
