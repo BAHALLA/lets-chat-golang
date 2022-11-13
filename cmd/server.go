@@ -13,6 +13,10 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
+type Message struct {
+	Message string `json:"message"`
+}
+
 func main() {
 
 	route := gin.Default()
@@ -45,16 +49,14 @@ func main() {
 		log.Println("Connected !")
 
 		for {
-			var message models.Message
+			var message Message
 			err := ws.ReadJSON(&message)
-			log.Printf(message.Content)
 
 			if err != nil {
 				log.Printf("Reading error occured %v\n", err)
 				break
 			}
-
-			log.Printf(message.Content)
+			log.Println(message)
 
 			if err:= ws.WriteJSON(message); err != nil {
 				log.Printf("Writing error occured %v\n", err)
