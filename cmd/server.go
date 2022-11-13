@@ -45,7 +45,7 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-		defer ws.Close()
+		//defer ws.Close()
 		log.Println("Connected !")
 
 		for {
