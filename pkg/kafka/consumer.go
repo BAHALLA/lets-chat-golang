@@ -26,7 +26,7 @@ func Subscribe(c kafka.Consumer, topic string) (models.Message, error) {
 	ev, err := c.ReadMessage(100 * time.Millisecond)
 	msg := models.Message{}
 	if ev != nil {
-		msg = models.Message{ID: "1", User: string(ev.Key), Content: string(ev.Value)}
+		msg = models.Message{ID: 1, User: string(ev.Key), Content: string(ev.Value)}
 	}
 
 	return msg, err
