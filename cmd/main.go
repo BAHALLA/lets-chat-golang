@@ -16,55 +16,35 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-type Message struct {
-	Message string `json:"message"`
-}
-
 func main() {
 
 	route := gin.Default()
 
 	p := startProducer(kafka.ConfigMap{"bootstrap.servers": "192.168.1.11:30831"})
 
-	route.GET("/send", func(c *gin.Context) {
-
-		err := kt.Publish(*p, "my-topic", models.Message{ID: "1", User: "Taoufiq", Content: "Hello !"})
-
-		if err == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "OK ",
-			})
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Not OK",
-			})
-		}
-	})
-
 	hub := NewHub()
 	go hub.run()
 
 	route.GET("/ws", func(ctx *gin.Context) {
 
-		upgrader.CheckOrigin  = func(r *http.Request) bool { return true}
+		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			log.Println(err)
 		}
-	    defer func() {
+		defer func() {
 			delete(hub.clients, ws)
 			ws.Close()
 			log.Printf("Closed!")
 		}()
 		// Add client
 		hub.clients[ws] = true
-		
-		log.Println("Connected!")
-		
-		// Listen on connection
-		read(hub, ws)
-	})
 
+		log.Println("Connected!")
+
+		// Listen on connection
+		read(hub, ws, p)
+	})
 
 	route.Run(":9090")
 }
@@ -77,10 +57,9 @@ func startProducer(conf kafka.ConfigMap) *kafka.Producer {
 	return p
 }
 
-
-func read(hub *Hub, client *websocket.Conn) {
+func read(hub *Hub, client *websocket.Conn, p *kafka.Producer) {
 	for {
-		var message Message
+		var message models.Message
 		err := client.ReadJSON(&message)
 		if err != nil {
 			log.Printf("error occurred: %v", err)
@@ -89,7 +68,14 @@ func read(hub *Hub, client *websocket.Conn) {
 		}
 		log.Println(message)
 
-                // Send a message to hub
+		err = kt.Publish(*p, "my-topic", message)
+		if err != nil {
+			log.Printf("error occurred writing to kafka: %v", err)
+			delete(hub.clients, client)
+			break
+		}
+
+		// Send a message to hub
 		hub.broadcast <- message
 	}
 }

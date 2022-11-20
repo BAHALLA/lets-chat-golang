@@ -2,19 +2,21 @@ package main
 
 import (
 	"errors"
-	"github.com/gorilla/websocket"
 	"log"
+
+	"github.com/bahalla/lets-chat-golang/pkg/models"
+	"github.com/gorilla/websocket"
 )
 
 type Hub struct {
-	clients map[*websocket.Conn]bool
-	broadcast chan Message
+	clients   map[*websocket.Conn]bool
+	broadcast chan models.Message
 }
 
 func NewHub() *Hub {
 	return &Hub{
 		clients:   make(map[*websocket.Conn]bool),
-		broadcast: make(chan Message),
+		broadcast: make(chan models.Message),
 	}
 }
 
